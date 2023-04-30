@@ -1,15 +1,9 @@
 import numpy as np
 from voters import calc_distance_matrix, calc_distance_tensor
-class Borda:
-    def __init__(self, E):
-        """
-        args
-            votes: 
-                array with each row being a ballot, each column
-                an alternative. entry i,j is what rank voter i gave 
-                to candidate j.
-        """
 
+class Scheme():
+    """docstring for Scheme"""
+    def __init__(self, E):
         self.alternatives = E.C
         self.votes = E.to_ballot()
         n,d = self.votes.shape
@@ -17,6 +11,11 @@ class Borda:
         self.num_voters = n
         self.num_alts = d
         self.alt_names = E.alt_names
+        
+
+class Borda(Scheme):
+    def __init__(self, E):
+        super(Borda, self).__init__(E)
     def run(self, use_names=False, return_scores=False):
         """
         returns
@@ -29,29 +28,17 @@ class Borda:
         results = {self.alt_names[i] : scores[i] for i in range(self.num_alts)}
         return scores, results, (-scores).argsort()
         
-class SRB:
+class SRB(Scheme):
     def __init__(self, E):
-        self.alternatives = E.C
-        self.votes = E.to_ballot()
-        n,d = self.votes.shape
-        self.scoring = np.arange(d-1,-1,-1)
-        self.num_voters = n
-        self.num_alts = d
-        self.alt_names = E.alt_names
+        super(SRB, self).__init__(E)
 
     def run(self):
         dictator = np.random.randint(0, self.num_voters)
         return None, None, [self.votes[dictator].argmin()]
-class IRV:
-    def __init__(self,E):
 
-        self.alternatives = E.C
-        self.votes = E.to_ballot()
-        n,d = self.votes.shape
-        self.scoring = np.arange(d-1,-1,-1)
-        self.num_voters = n
-        self.num_alts = d
-        self.alt_names = E.alt_names
+class IRV(Scheme):
+    def __init__(self,E):
+        super(IRV, self).__init__(E)
         
     def run(self):
         cands = [i for i in range(self.num_alts)]
@@ -102,15 +89,9 @@ class IRV:
                 breakpoint()
                 raise Exception('Broken')
     
-class Plurality:
+class Plurality(Scheme):
     def __init__(self,E):
-        self.alternatives = E.C
-        self.votes = E.to_ballot()
-        n,d = self.votes.shape
-        self.scoring = np.arange(d-1,-1,-1)
-        self.num_voters = n
-        self.num_alts = d
-        self.alt_names = E.alt_names
+        super(Plurality, self).__init__(E)
     def run(self):
         R = np.argsort(self.votes, axis=1)
         scores = np.zeros(self.num_alts)
@@ -119,17 +100,17 @@ class Plurality:
             scores[c] += sum(R[:,0] == c)
         return None, None, (-scores).argsort()
         
-class SRC:
+class SRC(Scheme):
     def __init__(self, E):
-        self.alternatives = E.C
-        self.votes = E.to_ballot()
-        n,d = self.votes.shape
-        self.scoring = np.arange(d-1,-1,-1)
-        self.num_voters = n
-        self.num_alts = d
-        self.alt_names = E.alt_names
+        super(SRC, self).__init__(E)
     def run(self):
         return None, None, sorted([i for i in range(self.num_alts)], key=lambda x: np.random.random())
+
+class Condorcet(object):
+    """docstring for Condorcet"""
+    def __init__(self, E):
+        super(Condorcet, self).__init__(E)
+
 
 class Election:
     """
@@ -162,3 +143,6 @@ class Election:
         #named_ballots = ballots.astype(object).copy()
 
         return ballots
+
+    def median_voter(self):
+        pass
